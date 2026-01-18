@@ -4,19 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>GPS Bergwander Pro</title>
+<meta name="description" content="Professionelle GPS-Tracking App für Bergwanderungen mit Live-Wetter, Warnungen und Route-Aufzeichnung">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GPS Pro">
+<meta name="apple-mobile-web-app-title" content="GPS Bergwander">
 <meta name="theme-color" content="#667eea">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{
-font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
 background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
 min-height:100vh;
 padding:15px;
 color:#fff;
+-webkit-font-smoothing:antialiased;
+-moz-osx-font-smoothing:grayscale;
 }
 .container{max-width:700px;margin:0 auto;padding-bottom:30px}
 .card{
@@ -33,6 +39,7 @@ color:#667eea;
 text-align:center;
 font-weight:800;
 margin-bottom:12px;
+letter-spacing:-0.5px;
 }
 .btn{
 background:linear-gradient(135deg,#667eea,#764ba2);
@@ -45,27 +52,34 @@ font-weight:700;
 width:100%;
 cursor:pointer;
 margin:10px 0;
-transition:transform 0.2s;
+transition:transform 0.2s,box-shadow 0.2s;
 text-decoration:none;
 display:block;
 text-align:center;
+-webkit-tap-highlight-color:transparent;
+box-shadow:0 4px 15px rgba(102,126,234,0.3);
 }
-.btn:active{transform:scale(0.96)}
+.btn:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(102,126,234,0.4)}
 .btn.secondary{
 background:linear-gradient(135deg,#f093fb,#f5576c);
 padding:13px 18px;
 font-size:0.95em;
+box-shadow:0 4px 15px rgba(245,87,108,0.3);
 }
 .btn.sos{
 background:linear-gradient(135deg,#ff4444,#cc0000);
 font-size:1.2em;
 animation:sosAnim 2.5s infinite;
+box-shadow:0 8px 30px rgba(255,68,68,0.5);
 }
 @keyframes sosAnim{
-0%,100%{transform:scale(1)}
-50%{transform:scale(1.02)}
+0%,100%{box-shadow:0 8px 30px rgba(255,68,68,0.5);transform:scale(1)}
+50%{box-shadow:0 8px 45px rgba(255,68,68,0.8);transform:scale(1.02)}
 }
-.btn.success{background:linear-gradient(135deg,#11998e,#38ef7d)}
+.btn.success{
+background:linear-gradient(135deg,#11998e,#38ef7d);
+box-shadow:0 4px 15px rgba(56,239,125,0.3);
+}
 .status{
 padding:15px;
 border-radius:14px;
@@ -86,10 +100,12 @@ border-radius:14px;
 margin:14px 0;
 font-weight:800;
 animation:alertPulse 2s infinite;
+box-shadow:0 6px 25px rgba(255,87,34,0.5);
+font-size:1.05em;
 }
 @keyframes alertPulse{
-0%,100%{opacity:1}
-50%{opacity:0.92}
+0%,100%{opacity:1;transform:scale(1)}
+50%{opacity:0.92;transform:scale(1.015)}
 }
 .grid{
 display:grid;
@@ -103,7 +119,9 @@ padding:16px;
 border-radius:12px;
 border:3px solid #667eea;
 text-align:center;
+transition:transform 0.2s;
 }
+.box:active{transform:scale(0.98)}
 .box strong{
 display:block;
 font-size:1.6em;
@@ -127,10 +145,11 @@ border-radius:14px;
 margin:14px 0;
 }
 .big-num{
-font-size:2.6em;
+font-size:2.8em;
 font-weight:900;
 color:#f5576c;
 margin:10px 0;
+letter-spacing:-1px;
 }
 .label{
 font-size:0.88em;
@@ -151,6 +170,7 @@ text-align:center;
 font-size:6em;
 margin:18px 0;
 transition:transform 0.6s ease;
+filter:drop-shadow(0 6px 12px rgba(0,0,0,0.25));
 }
 .waypoint-item{
 background:#f9fafb;
@@ -158,7 +178,9 @@ padding:14px;
 border-radius:12px;
 margin:10px 0;
 border-left:6px solid #667eea;
+transition:transform 0.2s;
 }
+.waypoint-item:active{transform:translateX(4px)}
 .waypoint-item strong{color:#667eea;font-size:1.1em}
 .elevation-chart{
 background:#f9fafb;
@@ -188,6 +210,7 @@ width:100%;
 color:#333;
 max-height:92vh;
 overflow-y:auto;
+box-shadow:0 15px 60px rgba(0,0,0,0.4);
 }
 .modal h2{
 color:#cc0000;
@@ -202,6 +225,7 @@ margin:14px 0;
 border-radius:12px;
 border:3px solid #e0e0e0;
 font-size:1.05em;
+transition:border-color 0.2s;
 }
 .modal input:focus{
 border-color:#667eea;
@@ -211,8 +235,9 @@ outline:none;
 font-weight:800;
 color:#667eea;
 margin:18px 0 12px;
-font-size:1.1em;
+font-size:1.15em;
 text-align:center;
+letter-spacing:-0.3px;
 }
 .info{
 background:#e3f2fd;
@@ -225,6 +250,12 @@ text-align:center;
 font-weight:600;
 }
 .hidden{display:none!important}
+@media(max-width:480px){
+h1{font-size:1.6em}
+.btn{font-size:1em;padding:14px 18px}
+.big-num{font-size:2.4em}
+#map{height:280px}
+}
 </style>
 </head>
 <body>
@@ -305,7 +336,7 @@ stats:{start:null,dist:0,maxSpeed:0,maxAlt:-Infinity,minAlt:Infinity,ascent:0,de
 map:null,marker:null,line:null,weatherTimer:null,statsTimer:null,lastWeatherCheck:0,
 
 init(){
-console.log('🏔️ GPS Bergwander Pro v8.0');
+console.log('🏔️ GPS Bergwander Pro v8.1 - Optimiert mit Custom Icon');
 this.bindEvents();
 this.getGPS();
 },
@@ -483,13 +514,13 @@ showWeather(w){
 const warnings=[];
 let critical=false;
 
-if(w.gusts>60){warnings.push('🚨 GEFAHR: Orkan ('+w.gusts+' km/h)!');critical=true}
-else if(w.wind>40||w.gusts>50){warnings.push('⚠️ WARNUNG: Starker Wind ('+w.wind+' km/h)');critical=true}
-if(w.rain>10){warnings.push('🌧️ GEFAHR: Starkregen');critical=true}
-else if(w.rain>5)warnings.push('🌧️ Regen ('+w.rain.toFixed(1)+' mm)');
-if(w.code===1087||w.code>=1273){warnings.push('⛈️ GEWITTER! Sofort Schutz suchen!');critical=true}
-if(w.temp<0&&w.rain>0){warnings.push('❄️ Gefrierender Regen!');critical=true}
-if(w.temp<-10)warnings.push('🥶 Extreme Kälte!');
+if(w.gusts>60){warnings.push('🚨 GEFAHR: Orkanartige Böen ('+w.gusts+' km/h)! Abstieg sofort!');critical=true}
+else if(w.wind>40||w.gusts>50){warnings.push('⚠️ WARNUNG: Starker Wind ('+w.wind+' km/h, Böen '+w.gusts+' km/h)');critical=true}
+if(w.rain>10){warnings.push('🌧️ GEFAHR: Starkregen ('+w.rain.toFixed(1)+' mm)');critical=true}
+else if(w.rain>5)warnings.push('🌧️ WARNUNG: Regen ('+w.rain.toFixed(1)+' mm)');
+if(w.code===1087||w.code>=1273){warnings.push('⛈️ GEWITTER! Sofort geschützte Stelle aufsuchen!');critical=true}
+if(w.temp<0&&w.rain>0){warnings.push('❄️ WARNUNG: Gefrierender Regen - Vorsicht Glätte!');critical=true}
+if(w.temp<-10)warnings.push('🥶 KÄLTE-WARNUNG: '+w.temp+'°C - Erfrierungsgefahr!');
 
 if(critical)this.alarm(warnings[0]);
 
@@ -497,10 +528,10 @@ const valley=w.temp+3;
 
 let html='<div class="card">';
 warnings.forEach(x=>html+=`<div class="alert">${x}</div>`);
-html+='<div class="section-title">🌦️ '+w.location+'</div><div class="grid">';
-html+=`<div class="box blue"><div style="font-size:2.5em">🏔️</div><div class="label">Berg</div><strong style="font-size:2em">${w.temp}°C</strong><div class="label">${w.condition}</div><div class="label">Gefühlt ${w.feels}°C</div></div>`;
-html+=`<div class="box ${w.wind>30?'red':'green'}"><div style="font-size:2.5em">💨</div><div class="label">Wind</div><strong style="font-size:1.6em">${w.wind} km/h</strong><div class="label">Böen ${w.gusts} km/h</div></div>`;
-html+=`<div class="box green"><div style="font-size:2.5em">🏞️</div><div class="label">Tal (~500m tiefer)</div><strong style="font-size:2em">~${valley}°C</strong></div>`;
+html+='<div class="section-title">🌦️ Live-Wetter • '+w.location+'</div><div class="grid">';
+html+=`<div class="box blue"><div style="font-size:2.5em">🏔️</div><div class="label">Berg (hier)</div><strong style="font-size:2em">${w.temp}°C</strong><div class="label">${w.condition}</div><div class="label" style="margin-top:6px">Gefühlt ${w.feels}°C</div></div>`;
+html+=`<div class="box ${w.wind>30?'red':'green'}"><div style="font-size:2.5em">💨</div><div class="label">Wind / Böen</div><strong style="font-size:1.6em">${w.wind} km/h</strong><div class="label">Böen ${w.gusts} km/h</div>${w.rain>0?`<div class="label" style="margin-top:6px">💧 ${w.rain.toFixed(1)} mm</div>`:''}</div>`;
+html+=`<div class="box green"><div style="font-size:2.5em">🏞️</div><div class="label">Tal (~500m tiefer)</div><strong style="font-size:2em">~${valley}°C</strong><div class="label">Geschätzt</div></div>`;
 html+=`<div class="box"><div style="font-size:2.5em">💧</div><div class="label">Luftfeuchte</div><strong style="font-size:2em">${w.humidity}%</strong></div>`;
 html+='</div><div class="label" style="text-align:center;margin-top:10px;color:#999">✅ Live • '+new Date().toLocaleTimeString('de-DE')+'</div></div>';
 document.getElementById('weatherCard').innerHTML=html;
@@ -511,6 +542,7 @@ if(navigator.vibrate)navigator.vibrate([500,200,500,200,500]);
 try{
 const s=new SpeechSynthesisUtterance('Achtung! Wetterwarnung! '+msg.replace(/[🚨⚠️⛈️❄️🌧️🥶]/g,''));
 s.lang='de-DE';s.rate=1.1;s.volume=1;
+speechSynthesis.cancel();
 speechSynthesis.speak(s);
 }catch(e){}
 },
@@ -531,7 +563,7 @@ html+=`<div class="box"><div class="label">⛰️ Höhe</div><strong>${p.alt?Mat
 if(p.speed!==null&&p.speed>0.5)html+=`<div class="box orange"><div class="label">🚶 Speed</div><strong>${(p.speed*3.6).toFixed(1)} km/h</strong></div>`;
 if(p.heading!==null){
 const d=['N','NO','O','SO','S','SW','W','NW'][Math.round(p.heading/45)%8];
-html+=`<div class="box"><div class="label">🧭 Richtung</div><strong>${d}</strong></div>`;
+html+=`<div class="box"><div class="label">🧭 Richtung</div><strong>${d} (${Math.round(p.heading)}°)</strong></div>`;
 }
 html+='</div>';
 document.getElementById('position').innerHTML=html;
@@ -554,7 +586,7 @@ const avg=this.stats.dist>0?(this.stats.dist/(dur/3600)/1000).toFixed(1):'0.0';
 let html='<div class="grid">';
 html+=`<div class="box green"><div class="label">⏱️ Zeit</div><strong>${h}h ${m}m</strong></div>`;
 html+=`<div class="box green"><div class="label">⚡ Ø Tempo</div><strong>${avg} km/h</strong></div>`;
-html+=`<div class="box green"><div class="label">🚀 Max</div><strong>${this.stats.maxSpeed.toFixed(1)} km/h</strong></div>`;
+html+=`<div class="box green"><div class="label">🚀 Max Speed</div><strong>${this.stats.maxSpeed.toFixed(1)} km/h</strong></div>`;
 html+=`<div class="box green"><div class="label">⛰️ Max Höhe</div><strong>${Math.round(this.stats.maxAlt)} m</strong></div>`;
 html+=`<div class="box green"><div class="label">📈 Aufstieg</div><strong>${Math.round(this.stats.ascent)} m</strong></div>`;
 html+=`<div class="box green"><div class="label">📉 Abstieg</div><strong>${Math.round(this.stats.descent)} m</strong></div>`;
@@ -636,7 +668,7 @@ alert(`Koordinaten:\n${t}`);
 },
 
 reset(){
-if(!confirm('Alle Daten löschen?'))return;
+if(!confirm('ACHTUNG!\n\nAlle Daten werden gelöscht.\n\nFortfahren?'))return;
 this.pause();
 this.route=[];
 this.elevations=[];
