@@ -1,0 +1,19 @@
+{
+  "name": "GPS Bergwandern Tracker",
+  "short_name": "GPS Track",
+  "description": "GPS-Tracking für Bergwanderungen",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
