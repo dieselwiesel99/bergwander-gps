@@ -1,731 +1,796 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>GPS Bergwander Pro</title>
-<meta name="description" content="Professionelle GPS-Tracking App für Bergwanderungen mit Live-Wetter, Warnungen und Route-Aufzeichnung">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GPS Bergwander">
-<meta name="theme-color" content="#667eea">
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" type="image/png" href="icon.png">
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-min-height:100vh;
-padding:15px;
-color:#fff;
--webkit-font-smoothing:antialiased;
--moz-osx-font-smoothing:grayscale;
-}
-.container{max-width:700px;margin:0 auto;padding-bottom:30px}
-.card{
-background:#fff;
-color:#333;
-border-radius:18px;
-padding:22px;
-margin:14px 0;
-box-shadow:0 10px 40px rgba(0,0,0,0.2);
-}
-h1{
-font-size:1.8em;
-color:#667eea;
-text-align:center;
-font-weight:800;
-margin-bottom:12px;
-letter-spacing:-0.5px;
-}
-.btn{
-background:linear-gradient(135deg,#667eea,#764ba2);
-color:#fff;
-border:none;
-padding:16px 22px;
-border-radius:14px;
-font-size:1.05em;
-font-weight:700;
-width:100%;
-cursor:pointer;
-margin:10px 0;
-transition:transform 0.2s,box-shadow 0.2s;
-text-decoration:none;
-display:block;
-text-align:center;
--webkit-tap-highlight-color:transparent;
-box-shadow:0 4px 15px rgba(102,126,234,0.3);
-}
-.btn:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(102,126,234,0.4)}
-.btn.secondary{
-background:linear-gradient(135deg,#f093fb,#f5576c);
-padding:13px 18px;
-font-size:0.95em;
-box-shadow:0 4px 15px rgba(245,87,108,0.3);
-}
-.btn.sos{
-background:linear-gradient(135deg,#ff4444,#cc0000);
-font-size:1.2em;
-animation:sosAnim 2.5s infinite;
-box-shadow:0 8px 30px rgba(255,68,68,0.5);
-}
-@keyframes sosAnim{
-0%,100%{box-shadow:0 8px 30px rgba(255,68,68,0.5);transform:scale(1)}
-50%{box-shadow:0 8px 45px rgba(255,68,68,0.8);transform:scale(1.02)}
-}
-.btn.success{
-background:linear-gradient(135deg,#11998e,#38ef7d);
-box-shadow:0 4px 15px rgba(56,239,125,0.3);
-}
-.status{
-padding:15px;
-border-radius:14px;
-margin:12px 0;
-font-weight:700;
-text-align:center;
-font-size:0.95em;
-}
-.loading{background:#e3f2fd;color:#1976d2}
-.success{background:#e8f5e9;color:#2e7d32}
-.error{background:#ffebee;color:#c62828}
-.warning{background:#fff3e0;color:#e65100}
-.alert{
-background:linear-gradient(135deg,#ff5722,#e64a19);
-color:#fff;
-padding:16px;
-border-radius:14px;
-margin:14px 0;
-font-weight:800;
-animation:alertPulse 2s infinite;
-box-shadow:0 6px 25px rgba(255,87,34,0.5);
-font-size:1.05em;
-}
-@keyframes alertPulse{
-0%,100%{opacity:1;transform:scale(1)}
-50%{opacity:0.92;transform:scale(1.015)}
-}
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:12px;
-margin:14px 0;
-}
-.box{
-background:#f9fafb;
-padding:16px;
-border-radius:12px;
-border:3px solid #667eea;
-text-align:center;
-transition:transform 0.2s;
-}
-.box:active{transform:scale(0.98)}
-.box strong{
-display:block;
-font-size:1.6em;
-margin:8px 0;
-color:#667eea;
-font-weight:800;
-}
-.box.green{border-color:#4caf50}
-.box.green strong{color:#4caf50}
-.box.blue{border-color:#2196f3}
-.box.blue strong{color:#2196f3}
-.box.red{border-color:#f5576c}
-.box.red strong{color:#f5576c}
-.box.orange{border-color:#ff9800}
-.box.orange strong{color:#ff9800}
-.big-display{
-text-align:center;
-padding:18px;
-background:#f9fafb;
-border-radius:14px;
-margin:14px 0;
-}
-.big-num{
-font-size:2.8em;
-font-weight:900;
-color:#f5576c;
-margin:10px 0;
-letter-spacing:-1px;
-}
-.label{
-font-size:0.88em;
-color:#666;
-margin:5px 0;
-font-weight:600;
-}
-#map{
-width:100%;
-height:320px;
-border-radius:14px;
-margin:14px 0;
-border:4px solid #667eea;
-box-shadow:0 6px 20px rgba(0,0,0,0.15);
-}
-.compass{
-text-align:center;
-font-size:6em;
-margin:18px 0;
-transition:transform 0.6s ease;
-filter:drop-shadow(0 6px 12px rgba(0,0,0,0.25));
-}
-.waypoint-item{
-background:#f9fafb;
-padding:14px;
-border-radius:12px;
-margin:10px 0;
-border-left:6px solid #667eea;
-transition:transform 0.2s;
-}
-.waypoint-item:active{transform:translateX(4px)}
-.waypoint-item strong{color:#667eea;font-size:1.1em}
-.elevation-chart{
-background:#f9fafb;
-padding:16px;
-border-radius:14px;
-margin:14px 0;
-}
-.modal{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.9);
-z-index:9999;
-align-items:center;
-justify-content:center;
-padding:20px;
-}
-.modal-content{
-background:#fff;
-padding:30px;
-border-radius:22px;
-max-width:450px;
-width:100%;
-color:#333;
-max-height:92vh;
-overflow-y:auto;
-box-shadow:0 15px 60px rgba(0,0,0,0.4);
-}
-.modal h2{
-color:#cc0000;
-margin-bottom:20px;
-font-size:1.8em;
-font-weight:800;
-}
-.modal input{
-width:100%;
-padding:16px;
-margin:14px 0;
-border-radius:12px;
-border:3px solid #e0e0e0;
-font-size:1.05em;
-transition:border-color 0.2s;
-}
-.modal input:focus{
-border-color:#667eea;
-outline:none;
-}
-.section-title{
-font-weight:800;
-color:#667eea;
-margin:18px 0 12px;
-font-size:1.15em;
-text-align:center;
-letter-spacing:-0.3px;
-}
-.info{
-background:#e3f2fd;
-color:#1976d2;
-padding:12px;
-border-radius:12px;
-font-size:0.9em;
-margin:12px 0;
-text-align:center;
-font-weight:600;
-}
-.hidden{display:none!important}
-@media(max-width:480px){
-h1{font-size:1.6em}
-.btn{font-size:1em;padding:14px 18px}
-.big-num{font-size:2.4em}
-#map{height:280px}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Professionelle GPS-Tracking App für Bergwanderungen mit Live-Wetter, Warnungen und Route-Aufzeichnung">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GPS Bergwandern">
+    <meta name="theme-color" content="#667eea">
+    
+    <title>GPS Bergwandern - Live Tracking</title>
+    
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 28px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* iOS Warnung */
+        .ios-warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe8a1 100%);
+            border-left: 5px solid #ff9800;
+            padding: 18px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            display: none;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .ios-warning.show {
+            display: block;
+        }
+
+        .ios-warning strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #e65100;
+        }
+
+        .ios-warning small {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Status Box */
+        .status {
+            padding: 18px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            background: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+        }
+
+        .status.active {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-left-color: #4caf50;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .status.error {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-left-color: #f44336;
+            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+        }
+
+        /* Wake Lock Status */
+        .wake-lock-status {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px dashed #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .wake-lock-status.active {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            color: #2e7d32;
+            border-color: #4caf50;
+            border-style: solid;
+        }
+
+        /* Buttons */
+        button {
+            width: 100%;
+            padding: 16px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            background: linear-gradient(135deg, #45a049 0%, #388e3c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        button:disabled {
+            background: #e0e0e0 !important;
+            color: #9e9e9e !important;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        /* Track Info Grid */
+        .track-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Coordinates Display */
+        .coordinates {
+            font-size: 14px;
+            color: #555;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-radius: 10px;
+            line-height: 1.8;
+            border: 2px solid #dee2e6;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Map Container */
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 3px solid #fff;
+        }
+
+        /* Download Button */
+        .btn-download {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-download:hover:not(:disabled) {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .track-info {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            #map {
+                height: 300px;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .status.active {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Battery Warning */
+        .battery-warning {
+            background: linear-gradient(135deg, #ffe5e5 0%, #ffcccc 100%);
+            border-left: 5px solid #ff5252;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #c62828;
+            display: none;
+        }
+
+        .battery-warning.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-<div class="card">
-<h1>🏔️ GPS Bergwander Pro</h1>
-<div id="status" class="status loading">🔍 GPS wird initialisiert...</div>
-</div>
+    <div class="container">
+        <h1>
+            <span>🏔️</span>
+            <span>GPS Bergwandern</span>
+        </h1>
 
-<div id="weatherCard"></div>
-<div id="compass" class="compass hidden">🧭</div>
-<div id="mapContainer"></div>
+        <!-- iOS Warnung -->
+        <div class="ios-warning" id="iosWarning">
+            <strong>⚠️ iPhone-Nutzer aufgepasst!</strong>
+            iOS pausiert das Tracking bei gesperrtem Bildschirm. 
+            <strong>Bitte Bildschirm während der Wanderung aktiv lassen!</strong><br>
+            <small>💡 Tipp: Unter Einstellungen → Anzeige & Helligkeit → Automatische Sperre 
+            auf "Nie" einstellen oder längere Zeit wählen.</small>
+        </div>
 
-<div id="distanceCard" class="card hidden">
-<div class="big-display">
-<div class="label">🚶 Zurückgelegte Strecke</div>
-<div class="big-num" id="distance">0 m</div>
-</div>
-</div>
+        <!-- Battery Warning -->
+        <div class="battery-warning" id="batteryWarning">
+            🔋 <strong>Niedriger Akkustand!</strong> Bitte Gerät aufladen, um Track nicht zu verlieren.
+        </div>
 
-<div id="statsCard" class="card hidden">
-<div class="section-title">📊 Live-Statistiken</div>
-<div id="stats"></div>
-</div>
+        <!-- Status -->
+        <div class="status" id="status">
+            📍 Bereit zum Tracken - Tippe auf "Tracking starten"
+        </div>
 
-<div id="elevationCard" class="card hidden">
-<div class="section-title">📈 Höhenprofil</div>
-<div id="elevation" class="elevation-chart"></div>
-</div>
+        <!-- Wake Lock Status -->
+        <div class="wake-lock-status" id="wakeLockStatus">
+            🔓 Bildschirm-Sperre: Inaktiv
+        </div>
 
-<div id="positionCard" class="card hidden">
-<div class="section-title">📍 Aktuelle Position</div>
-<div id="position"></div>
-</div>
+        <!-- Buttons -->
+        <button class="btn-start" id="startBtn">🚀 Tracking starten</button>
+        <button class="btn-stop" id="stopBtn" disabled>⏹️ Tracking stoppen</button>
+        <button class="btn-download" id="downloadBtn" disabled>💾 Track als GPX speichern</button>
 
-<div id="waypointsCard" class="card hidden">
-<div class="section-title">📌 Wegpunkte (<span id="wpCount">0</span>)</div>
-<div id="waypoints"></div>
-</div>
+        <!-- Track Info -->
+        <div class="track-info">
+            <div class="info-card">
+                <div class="info-label">📏 Distanz</div>
+                <div class="info-value" id="distance">0.00 km</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">⏱️ Zeit</div>
+                <div class="info-value" id="duration">00:00:00</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">🏃 Geschw.</div>
+                <div class="info-value" id="speed">0.0 km/h</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">📌 Punkte</div>
+                <div class="info-value" id="points">0</div>
+            </div>
+        </div>
 
-<div class="card">
-<button class="btn sos" id="sosBtn">🆘 NOTRUF (112)</button>
-<div id="initialControls">
-<button class="btn" id="startBtn">📍 Live-Tracking starten</button>
-</div>
-<div id="activeControls" class="hidden">
-<button class="btn secondary" id="wpBtn">📌 Wegpunkt setzen</button>
-<button class="btn secondary" id="copyBtn">📋 Koordinaten kopieren</button>
-<a class="btn secondary" id="mapsBtn" href="#" target="_blank" style="display:none">🗺️ In Google Maps</a>
-<a class="btn secondary" id="routeBtn" href="#" target="_blank" style="display:none">🗺️ Route in Maps</a>
-<button class="btn success" id="pauseBtn">⏸️ Tracking pausieren</button>
-<button class="btn" id="resetBtn" style="background:#666">🔄 Alles zurücksetzen</button>
-</div>
-<div class="info">💡 Mit Live-Wetter & Warnungen • iPhone-optimiert</div>
-</div>
-</div>
+        <!-- Map -->
+        <div id="map"></div>
 
-<div id="sosModal" class="modal">
-<div class="modal-content">
-<h2>🆘 NOTRUF</h2>
-<p style="margin:12px 0;font-weight:600">Deine aktuelle Position:</p>
-<p id="sosCoords" style="font-size:1.2em;margin:14px 0;color:#667eea;font-weight:700"></p>
-<input type="tel" id="sosPhone" placeholder="Kontakt-Nummer (optional)" autocomplete="tel">
-<button class="btn sos" id="sosSMS">📱 SMS mit Position senden</button>
-<button class="btn secondary" id="sosCall">📞 112 anrufen</button>
-<button class="btn" id="sosClose" style="background:#666">Abbrechen</button>
-</div>
-</div>
+        <!-- Coordinates -->
+        <div class="coordinates" id="coordinates">
+            📡 Warte auf GPS-Signal...<br>
+            Standortzugriff muss erlaubt werden
+        </div>
+    </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-'use strict';
-const APP={
-tracking:false,watchId:null,
-pos:{lat:0,lon:0,alt:null,acc:0,speed:null,heading:null},
-lastPos:null,route:[],elevations:[],waypoints:[],
-stats:{start:null,dist:0,maxSpeed:0,maxAlt:-Infinity,minAlt:Infinity,ascent:0,descent:0,lastAlt:null},
-map:null,marker:null,line:null,weatherTimer:null,statsTimer:null,lastWeatherCheck:0,
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // GPS Tracker Klasse
+        class GPSTracker {
+            constructor() {
+                this.isTracking = false;
+                this.watchId = null;
+                this.wakeLock = null;
+                this.trackPoints = [];
+                this.totalDistance = 0;
+                this.startTime = null;
+                this.timerInterval = null;
+                this.lastPosition = null;
+                this.map = null;
+                this.trackLayer = null;
+                this.currentMarker = null;
+                
+                this.initMap();
+            }
 
-init(){
-console.log('🏔️ GPS Bergwander Pro v8.1 - Optimiert mit Custom Icon');
-this.bindEvents();
-this.getGPS();
-},
+            // Karte initialisieren
+            initMap() {
+                this.map = L.map('map').setView([47.25, 16.28], 13);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(this.map);
 
-bindEvents(){
-document.getElementById('startBtn').onclick=()=>this.start();
-document.getElementById('pauseBtn').onclick=()=>this.pause();
-document.getElementById('resetBtn').onclick=()=>this.reset();
-document.getElementById('sosBtn').onclick=()=>this.openSOS();
-document.getElementById('wpBtn').onclick=()=>this.addWP();
-document.getElementById('copyBtn').onclick=()=>this.copy();
-document.getElementById('sosClose').onclick=()=>this.closeSOS();
-document.getElementById('sosSMS').onclick=()=>this.sendSMS();
-document.getElementById('sosCall').onclick=()=>this.call112();
-},
+                this.trackLayer = L.polyline([], {
+                    color: '#f44336',
+                    weight: 4,
+                    opacity: 0.8
+                }).addTo(this.map);
+            }
 
-getGPS(){
-if(!navigator.geolocation){
-this.setStatus('error','❌ GPS nicht verfügbar');
-return;
-}
-this.setStatus('loading','🔍 GPS-Signal wird gesucht...');
-navigator.geolocation.getCurrentPosition(
-p=>this.onGPS(p,false),
-e=>this.onError(e),
-{enableHighAccuracy:true,timeout:30000,maximumAge:10000}
-);
-},
+            // Wake Lock aktivieren
+            async requestWakeLock() {
+                if ('wakeLock' in navigator) {
+                    try {
+                        this.wakeLock = await navigator.wakeLock.request('screen');
+                        this.updateWakeLockStatus(true);
+                        console.log('✅ Wake Lock aktiv - Bildschirm bleibt an');
 
-start(){
-if(this.tracking)return;
-this.tracking=true;
-this.stats.start=Date.now();
-document.getElementById('initialControls').classList.add('hidden');
-document.getElementById('activeControls').classList.remove('hidden');
-this.setStatus('warning','📡 Live-Tracking aktiv...');
-this.watchId=navigator.geolocation.watchPosition(
-p=>this.onGPS(p,true),
-e=>this.onError(e),
-{enableHighAccuracy:true,maximumAge:0,timeout:30000}
-);
-this.statsTimer=setInterval(()=>this.updateStats(),5000);
-this.weatherTimer=setInterval(()=>this.getWeather(),10*60*1000);
-},
+                        this.wakeLock.addEventListener('release', () => {
+                            console.log('⚠️ Wake Lock freigegeben');
+                            this.updateWakeLockStatus(false);
+                        });
+                    } catch (err) {
+                        console.error('Wake Lock Fehler:', err);
+                        this.updateWakeLockStatus(false);
+                    }
+                } else {
+                    console.warn('Wake Lock API nicht verfügbar');
+                    this.updateWakeLockStatus(false);
+                }
+            }
 
-pause(){
-this.tracking=false;
-if(this.watchId){
-navigator.geolocation.clearWatch(this.watchId);
-this.watchId=null;
-}
-clearInterval(this.statsTimer);
-clearInterval(this.weatherTimer);
-document.getElementById('initialControls').classList.remove('hidden');
-document.getElementById('activeControls').classList.add('hidden');
-document.getElementById('startBtn').innerHTML='▶️ Fortsetzen';
-this.setStatus('success','⏸️ Pausiert');
-},
+            // Wake Lock Status anzeigen
+            updateWakeLockStatus(active) {
+                const statusEl = document.getElementById('wakeLockStatus');
+                if (active) {
+                    statusEl.textContent = '🔒 Bildschirm-Sperre: Aktiv (Bildschirm bleibt an)';
+                    statusEl.classList.add('active');
+                } else {
+                    statusEl.textContent = '🔓 Bildschirm-Sperre: Inaktiv (Bitte Bildschirm nicht sperren!)';
+                    statusEl.classList.remove('active');
+                }
+            }
 
-onGPS(position,tracking){
-const c=position.coords;
-this.pos={lat:c.latitude,lon:c.longitude,alt:c.altitude,acc:Math.round(c.accuracy),speed:c.speed,heading:c.heading};
+            // Wake Lock freigeben
+            async releaseWakeLock() {
+                if (this.wakeLock) {
+                    await this.wakeLock.release();
+                    this.wakeLock = null;
+                    this.updateWakeLockStatus(false);
+                }
+            }
 
-if(!this.map){
-this.initMap();
-this.getWeather();
-}
+            // Batterie-Status überwachen
+            async monitorBattery() {
+                if ('getBattery' in navigator) {
+                    try {
+                        const battery = await navigator.getBattery();
+                        const warningEl = document.getElementById('batteryWarning');
+                        
+                        const updateBatteryStatus = () => {
+                            if (battery.level < 0.2 && !battery.charging) {
+                                warningEl.classList.add('show');
+                            } else {
+                                warningEl.classList.remove('show');
+                            }
+                        };
 
-if(tracking && this.lastPos){
-const d=this.dist(this.lastPos.lat,this.lastPos.lon,this.pos.lat,this.pos.lon);
-if(d>=5 && d<=100){
-this.stats.dist+=d;
-this.route.push([this.pos.lat,this.pos.lon]);
-this.updateLine();
-}
-}else if(!this.route.length){
-this.route.push([this.pos.lat,this.pos.lon]);
-}
+                        battery.addEventListener('levelchange', updateBatteryStatus);
+                        battery.addEventListener('chargingchange', updateBatteryStatus);
+                        updateBatteryStatus();
+                    } catch (err) {
+                        console.log('Battery API nicht verfügbar');
+                    }
+                }
+            }
 
-if(this.pos.alt!==null){
-this.elevations.push(this.pos.alt);
-if(this.pos.alt>this.stats.maxAlt)this.stats.maxAlt=this.pos.alt;
-if(this.pos.alt<this.stats.minAlt)this.stats.minAlt=this.pos.alt;
-if(this.stats.lastAlt!==null){
-const diff=this.pos.alt-this.stats.lastAlt;
-if(diff>0)this.stats.ascent+=diff;
-else this.stats.descent+=Math.abs(diff);
-}
-this.stats.lastAlt=this.pos.alt;
-this.drawElevation();
-}
+            // Tracking starten
+            async start() {
+                if (this.isTracking) return;
 
-if(this.pos.speed!==null && this.pos.speed>0){
-const kmh=this.pos.speed*3.6;
-if(kmh>this.stats.maxSpeed)this.stats.maxSpeed=kmh;
-}
+                // Wake Lock aktivieren
+                await this.requestWakeLock();
+                
+                // Batterie überwachen
+                await this.monitorBattery();
 
-this.lastPos={...this.pos};
-this.setStatus('success','✅ Position aktualisiert');
-this.render();
-},
+                if (!navigator.geolocation) {
+                    this.updateStatus('❌ Geolocation wird nicht unterstützt', 'error');
+                    return;
+                }
 
-onError(err){
-let msg='❌ GPS-Fehler';
-if(err.code===1)msg='❌ Standort verweigert<br><small>Einstellungen → Standort erlauben</small>';
-if(err.code===2)msg='❌ Position nicht verfügbar<br><small>Gehe nach draußen</small>';
-if(err.code===3)msg='⏱️ Timeout<br><small>Erneut versuchen...</small>';
-this.setStatus('error',msg);
-},
+                this.isTracking = true;
+                this.startTime = Date.now();
+                this.trackPoints = [];
+                this.totalDistance = 0;
+                this.lastPosition = null;
 
-initMap(){
-const div=document.createElement('div');
-div.id='map';
-document.getElementById('mapContainer').appendChild(div);
-this.map=L.map('map').setView([this.pos.lat,this.pos.lon],15);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(this.map);
-this.marker=L.marker([this.pos.lat,this.pos.lon],{icon:L.divIcon({className:'',html:'📍',iconSize:[34,34]})}).addTo(this.map);
-this.line=L.polyline([],{color:'#f5576c',weight:5,opacity:0.85}).addTo(this.map);
-},
+                // Karte zurücksetzen
+                this.trackLayer.setLatLngs([]);
+                if (this.currentMarker) {
+                    this.map.removeLayer(this.currentMarker);
+                }
 
-updateLine(){
-if(!this.map)return;
-this.marker.setLatLng([this.pos.lat,this.pos.lon]);
-this.line.setLatLngs(this.route);
-this.map.setView([this.pos.lat,this.pos.lon],this.map.getZoom());
-},
+                // Timer starten
+                this.startTimer();
 
-async getWeather(){
-const now=Date.now();
-if(now-this.lastWeatherCheck<60000)return;
-this.lastWeatherCheck=now;
+                // GPS Tracking starten
+                this.watchId = navigator.geolocation.watchPosition(
+                    (position) => this.handlePosition(position),
+                    (error) => this.handleError(error),
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                        timeout: 10000
+                    }
+                );
 
-if(this.pos.lat===0){
-document.getElementById('weatherCard').innerHTML='<div class="card"><div class="status warning">⏳ Warte auf GPS...</div></div>';
-return;
-}
+                this.updateStatus('✅ Tracking aktiv - Aufzeichnung läuft', 'active');
+                this.updateButtons();
+            }
 
-try{
-const lat=this.pos.lat.toFixed(4);
-const lon=this.pos.lon.toFixed(4);
-const url=`/.netlify/functions/weather?lat=${lat}&lon=${lon}`;
+            // Tracking stoppen
+            async stop() {
+                if (!this.isTracking) return;
 
-console.log('🌦️ Lade Wetter...');
-const r=await fetch(url);
+                this.isTracking = false;
 
-if(!r.ok)throw new Error('HTTP '+r.status);
+                if (this.watchId) {
+                    navigator.geolocation.clearWatch(this.watchId);
+                    this.watchId = null;
+                }
 
-const d=await r.json();
-console.log('✅ Wetter empfangen');
+                // Timer stoppen
+                this.stopTimer();
 
-if(!d.current)throw new Error('Keine Daten');
+                // Wake Lock freigeben
+                await this.releaseWakeLock();
 
-const c=d.current;
-const l=d.location;
+                this.updateStatus(`⏹️ Tracking gestoppt - ${this.trackPoints.length} Punkte aufgezeichnet`, '');
+                this.updateButtons();
+            }
 
-this.showWeather({
-temp:Math.round(c.temp_c),
-feels:Math.round(c.feelslike_c),
-wind:Math.round(c.wind_kph),
-gusts:Math.round(c.gust_kph),
-rain:c.precip_mm||0,
-humidity:c.humidity,
-condition:c.condition.text,
-code:c.condition.code,
-location:l.name+(l.region?', '+l.region:'')
-});
+            // Position verarbeiten
+            handlePosition(position) {
+                const { latitude, longitude, accuracy, speed, altitude } = position.coords;
 
-}catch(e){
-console.error('❌ Wetter-Fehler:',e);
-document.getElementById('weatherCard').innerHTML='<div class="card"><div class="status warning">🌐 Wetter nicht verfügbar</div></div>';
-}
-},
+                // Koordinaten anzeigen
+                document.getElementById('coordinates').innerHTML = `
+                    📍 <strong>Position:</strong> ${latitude.toFixed(6)}° N, ${longitude.toFixed(6)}° E<br>
+                    🎯 <strong>Genauigkeit:</strong> ±${accuracy.toFixed(1)}m
+                    ${altitude ? ` | 📏 <strong>Höhe:</strong> ${altitude.toFixed(0)}m` : ''}
+                    ${speed ? ` | 🏃 <strong>Speed:</strong> ${(speed * 3.6).toFixed(1)} km/h` : ''}
+                `;
 
-showWeather(w){
-const warnings=[];
-let critical=false;
+                // Punkt speichern
+                const point = {
+                    lat: latitude,
+                    lon: longitude,
+                    timestamp: Date.now(),
+                    accuracy: accuracy,
+                    speed: speed,
+                    altitude: altitude
+                };
 
-if(w.gusts>60){warnings.push('🚨 GEFAHR: Orkanartige Böen ('+w.gusts+' km/h)! Abstieg sofort!');critical=true}
-else if(w.wind>40||w.gusts>50){warnings.push('⚠️ WARNUNG: Starker Wind ('+w.wind+' km/h, Böen '+w.gusts+' km/h)');critical=true}
-if(w.rain>10){warnings.push('🌧️ GEFAHR: Starkregen ('+w.rain.toFixed(1)+' mm)');critical=true}
-else if(w.rain>5)warnings.push('🌧️ WARNUNG: Regen ('+w.rain.toFixed(1)+' mm)');
-if(w.code===1087||w.code>=1273){warnings.push('⛈️ GEWITTER! Sofort geschützte Stelle aufsuchen!');critical=true}
-if(w.temp<0&&w.rain>0){warnings.push('❄️ WARNUNG: Gefrierender Regen - Vorsicht Glätte!');critical=true}
-if(w.temp<-10)warnings.push('🥶 KÄLTE-WARNUNG: '+w.temp+'°C - Erfrierungsgefahr!');
+                this.trackPoints.push(point);
 
-if(critical)this.alarm(warnings[0]);
+                // Distanz berechnen
+                if (this.lastPosition) {
+                    const distance = this.calculateDistance(
+                        this.lastPosition.lat,
+                        this.lastPosition.lon,
+                        latitude,
+                        longitude
+                    );
+                    
+                    // Nur sinnvolle Distanzen addieren (Filter für GPS-Sprünge)
+                    if (distance < 0.1) { // max 100m zwischen Punkten
+                        this.totalDistance += distance;
+                    }
+                }
 
-const valley=w.temp+3;
+                this.lastPosition = point;
 
-let html='<div class="card">';
-warnings.forEach(x=>html+=`<div class="alert">${x}</div>`);
-html+='<div class="section-title">🌦️ Live-Wetter • '+w.location+'</div><div class="grid">';
-html+=`<div class="box blue"><div style="font-size:2.5em">🏔️</div><div class="label">Berg (hier)</div><strong style="font-size:2em">${w.temp}°C</strong><div class="label">${w.condition}</div><div class="label" style="margin-top:6px">Gefühlt ${w.feels}°C</div></div>`;
-html+=`<div class="box ${w.wind>30?'red':'green'}"><div style="font-size:2.5em">💨</div><div class="label">Wind / Böen</div><strong style="font-size:1.6em">${w.wind} km/h</strong><div class="label">Böen ${w.gusts} km/h</div>${w.rain>0?`<div class="label" style="margin-top:6px">💧 ${w.rain.toFixed(1)} mm</div>`:''}</div>`;
-html+=`<div class="box green"><div style="font-size:2.5em">🏞️</div><div class="label">Tal (~500m tiefer)</div><strong style="font-size:2em">~${valley}°C</strong><div class="label">Geschätzt</div></div>`;
-html+=`<div class="box"><div style="font-size:2.5em">💧</div><div class="label">Luftfeuchte</div><strong style="font-size:2em">${w.humidity}%</strong></div>`;
-html+='</div><div class="label" style="text-align:center;margin-top:10px;color:#999">✅ Live • '+new Date().toLocaleTimeString('de-DE')+'</div></div>';
-document.getElementById('weatherCard').innerHTML=html;
-},
+                // Karte aktualisieren
+                this.updateMap(latitude, longitude);
 
-alarm(msg){
-if(navigator.vibrate)navigator.vibrate([500,200,500,200,500]);
-try{
-const s=new SpeechSynthesisUtterance('Achtung! Wetterwarnung! '+msg.replace(/[🚨⚠️⛈️❄️🌧️🥶]/g,''));
-s.lang='de-DE';s.rate=1.1;s.volume=1;
-speechSynthesis.cancel();
-speechSynthesis.speak(s);
-}catch(e){}
-},
+                // UI aktualisieren
+                this.updateUI(speed);
+            }
 
-render(){
-this.renderPos();
-this.renderDist();
-this.renderStats();
-this.renderCompass();
-this.updateLinks();
-},
+            // Karte aktualisieren
+            updateMap(lat, lon) {
+                // Track-Linie aktualisieren
+                const latLngs = this.trackPoints.map(p => [p.lat, p.lon]);
+                this.trackLayer.setLatLngs(latLngs);
 
-renderPos(){
-const p=this.pos;
-let html=`<div class="big-display"><div class="label">GPS-Koordinaten</div><div style="font-size:1.6em;font-weight:800;color:#667eea;margin:12px 0">${p.lat.toFixed(6)}°N<br>${p.lon.toFixed(6)}°E</div></div><div class="grid">`;
-html+=`<div class="box"><div class="label">🎯 Genauigkeit</div><strong>±${p.acc}m</strong></div>`;
-html+=`<div class="box"><div class="label">⛰️ Höhe</div><strong>${p.alt?Math.round(p.alt)+'m':'—'}</strong></div>`;
-if(p.speed!==null&&p.speed>0.5)html+=`<div class="box orange"><div class="label">🚶 Speed</div><strong>${(p.speed*3.6).toFixed(1)} km/h</strong></div>`;
-if(p.heading!==null){
-const d=['N','NO','O','SO','S','SW','W','NW'][Math.round(p.heading/45)%8];
-html+=`<div class="box"><div class="label">🧭 Richtung</div><strong>${d} (${Math.round(p.heading)}°)</strong></div>`;
-}
-html+='</div>';
-document.getElementById('position').innerHTML=html;
-document.getElementById('positionCard').classList.remove('hidden');
-},
+                // Aktuellen Marker setzen
+                if (this.currentMarker) {
+                    this.map.removeLayer(this.currentMarker);
+                }
 
-renderDist(){
-if(this.stats.dist<=0)return;
-const t=this.stats.dist>=1000?(this.stats.dist/1000).toFixed(2)+' km':Math.round(this.stats.dist)+' m';
-document.getElementById('distance').textContent=t;
-document.getElementById('distanceCard').classList.remove('hidden');
-},
+                this.currentMarker = L.marker([lat, lon], {
+                    icon: L.divIcon({
+                        className: 'current-position',
+                        html: '<div style="background: #4caf50; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+                        iconSize: [20, 20]
+                    })
+                }).addTo(this.map);
 
-renderStats(){
-if(!this.stats.start)return;
-const dur=Math.floor((Date.now()-this.stats.start)/1000);
-const h=Math.floor(dur/3600);
-const m=Math.floor((dur%3600)/60);
-const avg=this.stats.dist>0?(this.stats.dist/(dur/3600)/1000).toFixed(1):'0.0';
-let html='<div class="grid">';
-html+=`<div class="box green"><div class="label">⏱️ Zeit</div><strong>${h}h ${m}m</strong></div>`;
-html+=`<div class="box green"><div class="label">⚡ Ø Tempo</div><strong>${avg} km/h</strong></div>`;
-html+=`<div class="box green"><div class="label">🚀 Max Speed</div><strong>${this.stats.maxSpeed.toFixed(1)} km/h</strong></div>`;
-html+=`<div class="box green"><div class="label">⛰️ Max Höhe</div><strong>${Math.round(this.stats.maxAlt)} m</strong></div>`;
-html+=`<div class="box green"><div class="label">📈 Aufstieg</div><strong>${Math.round(this.stats.ascent)} m</strong></div>`;
-html+=`<div class="box green"><div class="label">📉 Abstieg</div><strong>${Math.round(this.stats.descent)} m</strong></div>`;
-html+='</div>';
-document.getElementById('stats').innerHTML=html;
-document.getElementById('statsCard').classList.remove('hidden');
-},
+                // Karte zentrieren
+                this.map.setView([lat, lon], this.map.getZoom());
+            }
 
-updateStats(){
-if(this.tracking)this.renderStats();
-},
+            // Fehlerbehandlung
+            handleError(error) {
+                let message = '❌ GPS-Fehler: ';
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        message += 'Standortzugriff verweigert - Bitte in Einstellungen erlauben';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message += 'Position nicht verfügbar - Prüfe GPS-Empfang';
+                        break;
+                    case error.TIMEOUT:
+                        message += 'Zeitüberschreitung - Versuche es erneut';
+                        break;
+                    default:
+                        message += 'Unbekannter Fehler';
+                }
+                this.updateStatus(message, 'error');
+            }
 
-renderCompass(){
-const el=document.getElementById('compass');
-if(this.pos.heading!==null){
-el.style.transform=`rotate(${this.pos.heading}deg)`;
-el.classList.remove('hidden');
-}
-},
+            // Distanz zwischen zwei Punkten berechnen (Haversine-Formel)
+            calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371; // Erdradius in km
+                const dLat = this.deg2rad(lat2 - lat1);
+                const dLon = this.deg2rad(lon2 - lon1);
+                const a =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c;
+            }
 
-drawElevation(){
-if(this.elevations.length<2)return;
-const max=Math.max(...this.elevations);
-const min=Math.min(...this.elevations);
-const range=max-min||1;
-const w=500/this.elevations.length;
-let svg='<svg width="100%" height="130" viewBox="0 0 500 130" style="background:#fff;border-radius:12px">';
-this.elevations.forEach((h,i)=>{
-const height=((h-min)/range)*110;
-svg+=`<rect x="${i*w}" y="${120-height}" width="${w-2}" height="${height}" fill="#667eea" rx="2"/>`;
-});
-svg+='</svg>';
-svg+=`<div style="display:flex;justify-content:space-between;margin-top:12px;font-weight:700"><span style="color:#4caf50">Min: ${Math.round(min)}m</span><span style="color:#667eea">Δ ${Math.round(range)}m</span><span style="color:#f5576c">Max: ${Math.round(max)}m</span></div>`;
-document.getElementById('elevation').innerHTML=svg;
-document.getElementById('elevationCard').classList.remove('hidden');
-},
+            deg2rad(deg) {
+                return deg * (Math.PI / 180);
+            }
 
-updateLinks(){
-document.getElementById('mapsBtn').href=`https://www.google.com/maps?q=${this.pos.lat},${this.pos.lon}`;
-document.getElementById('mapsBtn').style.display='block';
-if(this.route.length>1){
-let u='https://www.google.com/maps/dir/';
-this.route.forEach(p=>u+=`${p[0]},${p[1]}/`);
-document.getElementById('routeBtn').href=u;
-document.getElementById('routeBtn').style.display='block';
-}
-},
+            // Timer starten
+            startTimer() {
+                this.timerInterval = setInterval(() => {
+                    const elapsed = Date.now() - this.startTime;
+                    const hours = Math.floor(elapsed / 3600000);
+                    const minutes = Math.floor((elapsed % 3600000) / 60000);
+                    const seconds = Math.floor((elapsed % 60000) / 1000);
+                    document.getElementById('duration').textContent =
+                        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                }, 1000);
+            }
 
-addWP(){
-if(this.pos.lat===0)return;
-const n=prompt('Wegpunkt-Name:',`Punkt ${this.waypoints.length+1}`);
-if(!n)return;
-const wp={name:n,lat:this.pos.lat,lon:this.pos.lon,alt:this.pos.alt,time:new Date().toLocaleTimeString('de-DE')};
-this.waypoints.push(wp);
-if(this.map){
-L.marker([wp.lat,wp.lon],{icon:L.divIcon({className:'',html:'📌',iconSize:[32,32]})}).addTo(this.map).bindPopup(`<strong>${wp.name}</strong><br>${wp.lat.toFixed(6)}, ${wp.lon.toFixed(6)}`);
-}
-this.renderWP();
-},
+            // Timer stoppen
+            stopTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+            }
 
-renderWP(){
-if(!this.waypoints.length)return;
-let html='';
-this.waypoints.forEach((w,i)=>{
-html+=`<div class="waypoint-item"><strong>${i+1}. ${w.name}</strong><br><small>${w.lat.toFixed(6)}, ${w.lon.toFixed(6)}${w.alt?' • '+Math.round(w.alt)+'m':''} • ${w.time}</small></div>`;
-});
-document.getElementById('waypoints').innerHTML=html;
-document.getElementById('wpCount').textContent=this.waypoints.length;
-document.getElementById('waypointsCard').classList.remove('hidden');
-},
+            // UI aktualisieren
+            updateUI(speed) {
+                document.getElementById('distance').textContent = `${this.totalDistance.toFixed(2)} km`;
+                document.getElementById('points').textContent = this.trackPoints.length;
+                
+                const speedKmH = speed ? (speed * 3.6) : 0;
+                document.getElementById('speed').textContent = `${speedKmH.toFixed(1)} km/h`;
+            }
 
-copy(){
-const t=`${this.pos.lat.toFixed(6)}, ${this.pos.lon.toFixed(6)}`;
-if(navigator.clipboard){
-navigator.clipboard.writeText(t).then(()=>alert(`✅ Kopiert:\n${t}`));
-}else{
-alert(`Koordinaten:\n${t}`);
-}
-},
+            // Status aktualisieren
+            updateStatus(message, className) {
+                const statusEl = document.getElementById('status');
+                statusEl.textContent = message;
+                statusEl.className = 'status ' + className;
+            }
 
-reset(){
-if(!confirm('ACHTUNG!\n\nAlle Daten werden gelöscht.\n\nFortfahren?'))return;
-this.pause();
-this.route=[];
-this.elevations=[];
-this.waypoints=[];
-this.stats={start:null,dist:0,maxSpeed:0,maxAlt:-Infinity,minAlt:Infinity,ascent:0,descent:0,lastAlt:null};
-['distanceCard','statsCard','elevationCard','waypointsCard'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-document.getElementById('routeBtn').style.display='none';
-document.getElementById('startBtn').innerHTML='📍 Live-Tracking starten';
-if(this.line)this.line.setLatLngs([]);
-if(this.map){
-this.map.eachLayer(l=>{if(l instanceof L.Marker && l!==this.marker)this.map.removeLayer(l)});
-}
-this.setStatus('success','✅ Zurückgesetzt');
-},
+            // Buttons aktualisieren
+            updateButtons() {
+                document.getElementById('startBtn').disabled = this.isTracking;
+                document.getElementById('stopBtn').disabled = !this.isTracking;
+                document.getElementById('downloadBtn').disabled = this.trackPoints.length === 0;
+            }
 
-openSOS(){
-const a=this.pos.alt?Math.round(this.pos.alt)+'m':'?';
-document.getElementById('sosCoords').innerHTML=`${this.pos.lat.toFixed(6)}°N, ${this.pos.lon.toFixed(6)}°E<br>Höhe: ${a}`;
-document.getElementById('sosModal').style.display='flex';
-},
+            // Track als GPX speichern
+            saveTrack() {
+                if (this.trackPoints.length === 0) {
+                    alert('⚠️ Keine Trackpunkte vorhanden! Starte erst eine Aufzeichnung.');
+                    return;
+                }
 
-closeSOS(){
-document.getElementById('sosModal').style.display='none';
-},
+                const gpx = this.generateGPX();
+                const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const date = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                a.download = `bergwanderung_${date}.gpx`;
+                a.click();
+                URL.revokeObjectURL(url);
 
-sendSMS(){
-const n=document.getElementById('sosPhone').value.trim();
-if(!n){alert('❌ Nummer eingeben!');return}
-const m=`🆘 NOTRUF!\n\nPosition:\n${this.pos.lat.toFixed(6)}, ${this.pos.lon.toFixed(6)}\nHöhe: ${this.pos.alt?Math.round(this.pos.alt)+'m':'?'}\n\nMaps:\nhttps://www.google.com/maps?q=${this.pos.lat},${this.pos.lon}`;
-window.location.href=`sms:${n}?&body=${encodeURIComponent(m)}`;
-this.closeSOS();
-},
+                alert(`✅ Track erfolgreich gespeichert!\n\n📊 Statistik:\n• ${this.trackPoints.length} GPS-Punkte\n• ${this.totalDistance.toFixed(2)} km Distanz\n• ${document.getElementById('duration').textContent} Dauer`);
+            }
 
-call112(){
-if(confirm('📞 112 anrufen?')){
-window.location.href='tel:112';
-this.closeSOS();
-}
-},
+            // GPX-Datei generieren
+            generateGPX() {
+                const now = new Date();
+                let gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="GPS Bergwandern App" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>Bergwanderung ${now.toLocaleDateString('de-DE')}</name>
+    <desc>GPS-Track aufgezeichnet mit GPS Bergwandern App</desc>
+    <author>
+      <name>GPS Bergwandern</name>
+    </author>
+    <time>${now.toISOString()}</time>
+  </metadata>
+  <trk>
+    <name>Track ${now.toLocaleTimeString('de-DE')}</name>
+    <desc>Distanz: ${this.totalDistance.toFixed(2)} km, Punkte: ${this.trackPoints.length}</desc>
+    <trkseg>
+`;
+                this.trackPoints.forEach(point => {
+                    gpx += `      <trkpt lat="${point.lat}" lon="${point.lon}">
+        <ele>${point.altitude || 0}</ele>
+        <time>${new Date(point.timestamp).toISOString()}</time>
+      </trkpt>
+`;
+                });
 
-dist(lat1,lon1,lat2,lon2){
-const R=6371000;
-const toRad=d=>d*Math.PI/180;
-const dLat=toRad(lat2-lat1);
-const dLon=toRad(lon2-lon1);
-const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-},
+                gpx += `    </trkseg>
+  </trk>
+</gpx>`;
+                return gpx;
+            }
+        }
 
-setStatus(type,msg){
-const el=document.getElementById('status');
-el.className=`status ${type}`;
-el.innerHTML=msg;
-}
-};
+        // App initialisieren
+        const tracker = new GPSTracker();
 
-document.addEventListener('DOMContentLoaded',()=>APP.init());
-</script>
+        // iOS Detection
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) {
+            document.getElementById('iosWarning').classList.add('show');
+        }
+
+        // Event Listeners
+        document.getElementById('startBtn').addEventListener('click', () => {
+            tracker.start();
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            tracker.stop();
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            tracker.saveTrack();
+        });
+
+        // Page Visibility API - Warnung wenn Tab inaktiv
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && tracker.isTracking) {
+                console.warn('⚠️ Tab ist nicht mehr sichtbar - Tracking könnte pausieren!');
+            }
+        });
+
+        // Wake Lock bei Seitenwechsel neu anfordern
+        document.addEventListener('visibilitychange', async () => {
+            if (!document.hidden && tracker.isTracking && !tracker.wakeLock) {
+                await tracker.requestWakeLock();
+            }
+        });
+
+        // Service Worker registrieren (für PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/bergwander-gps/sw.js').catch(err => {
+                console.log('Service Worker Registrierung fehlgeschlagen:', err);
+            });
+        }
+    </script>
 </body>
 </html>
